@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ThyChef Store Management
 
-## Getting Started
+เว็บแอปสำหรับจัดการยอดขาย รายรับ รายจ่าย การซื้อวัตถุดิบ และสต๊อกร้าน โดยโปรเจกต์นี้ตั้งต้นด้วย `Next.js + Prisma + PostgreSQL`
 
-First, run the development server:
+## Stack
+
+- `Next.js 16`
+- `Prisma 6`
+- `PostgreSQL`
+- เป้าหมาย deployment: `Vercel + Supabase`
+
+## เริ่มใช้งานในเครื่อง
+
+1. คัดลอกไฟล์ environment
+2. ใส่ค่าเชื่อมต่อฐานข้อมูล
+3. รัน migration
+4. เปิด dev server
 
 ```bash
+cp .env.example .env
+npm install
+npm run db:migrate
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+ไฟล์ `.env.example` ถูกตั้งชื่อไว้ตามแนวทางของ Supabase + Prisma แล้ว
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `DATABASE_URL`
+  ใช้สำหรับ runtime ของแอป
+- `DIRECT_URL`
+  ใช้สำหรับ Prisma Migrate และงาน admin
 
-## Learn More
+## Prisma Commands
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run db:generate
+npm run db:migrate
+npm run db:deploy
+npm run db:studio
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## หน้า MVP ที่มีแล้ว
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `/`
+- `/sales/new`
+- `/expenses/new`
 
-## Deploy on Vercel
+## Deploy
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+อ่านขั้นตอนเต็มได้ที่ [DEPLOY_VERCEL_SUPABASE.md](./DEPLOY_VERCEL_SUPABASE.md)

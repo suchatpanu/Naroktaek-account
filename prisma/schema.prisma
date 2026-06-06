@@ -1,0 +1,223 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  OWNER
+  MANAGER
+  STAFF
+}
+
+enum SaleChannel {
+  STORE
+  DELIVERY
+  OCHA
+  OTHER
+}
+
+enum ExpenseType {
+  RAW_MATERIAL
+  LABOR
+  UTILITY
+  FIXED_COST
+  OTHER
+}
+
+enum InventoryTransactionType {
+  PURCHASE
+  USAGE
+  ADJUST
+  WASTE
+}
+
+model User {
+  id               String                 @id @default(uuid()) @db.Uuid
+  name             String
+  role             UserRole               @default(STAFF)
+  email            String                 @unique
+  passwordHash     String                 @map("password_hash")
+  createdAt        DateTime               @default(now()) @map("created_at")
+  sales            Sale[]
+  expenses         Expense[]
+  purchases        Purchase[]
+  stockAdjustments InventoryTransaction[]
+
+  @@map("users")
+}
+
+model PaymentMethod {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  sales     Sale[]
+
+  @@map("payment_methods")
+}
+
+model Product {
+  id        String          @id @default(uuid()) @db.Uuid
+  sku       String?         @unique
+  name      String
+  salePrice Decimal         @map("sale_price") @db.Decimal(10, 2)
+  isActive  Boolean         @default(true) @map("is_active")
+  createdAt DateTime        @default(now()) @map("created_at")
+  saleItems SaleItem[]
+  recipes   ProductRecipe[]
+
+  @@map("products")
+}
+
+model Sale {
+  id              String                @id @default(uuid()) @db.Uuid
+  saleNumber      String                @unique @map("sale_number")
+  saleDate        DateTime              @db.Date @map("sale_date")
+  paymentMethodId String                @db.Uuid @map("payment_method_id")
+  channel         SaleChannel           @default(STORE)
+  subtotal        Decimal               @db.Decimal(10, 2)
+  discountAmount  Decimal               @default(0) @map("discount_amount") @db.Decimal(10, 2)
+  totalAmount     Decimal               @map("total_amount") @db.Decimal(10, 2)
+  note            String?
+  createdBy       String                @db.Uuid @map("created_by")
+  createdAt       DateTime              @default(now()) @map("created_at")
+  paymentMethod   PaymentMethod         @relation(fields: [paymentMethodId], references: [id])
+  creator         User                  @relation(fields: [createdBy], references: [id])
+  items           SaleItem[]
+  inventoryMoves  InventoryTransaction[]
+
+  @@index([saleDate])
+  @@index([paymentMethodId])
+  @@map("sales")
+}
+
+model SaleItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  saleId    String   @db.Uuid @map("sale_id")
+  productId String   @db.Uuid @map("product_id")
+  quantity  Decimal  @db.Decimal(10, 2)
+  unitPrice Decimal  @map("unit_price") @db.Decimal(10, 2)
+  lineTotal Decimal  @map("line_total") @db.Decimal(10, 2)
+  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@index([saleId])
+  @@index([productId])
+  @@map("sale_items")
+}
+
+model ExpenseCategory {
+  id        String      @id @default(uuid()) @db.Uuid
+  code      String      @unique
+  name      String
+  type      ExpenseType
+  isActive  Boolean     @default(true) @map("is_active")
+  createdAt DateTime    @default(now()) @map("created_at")
+  expenses  Expense[]
+
+  @@map("expense_categories")
+}
+
+model Expense {
+  id          String          @id @default(uuid()) @db.Uuid
+  expenseDate DateTime        @db.Date @map("expense_date")
+  categoryId  String          @db.Uuid @map("category_id")
+  amount      Decimal         @db.Decimal(10, 2)
+  vendorName  String?         @map("vendor_name")
+  note        String?
+  isFixedCost Boolean         @default(false) @map("is_fixed_cost")
+  createdBy   String          @db.Uuid @map("created_by")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  category    ExpenseCategory @relation(fields: [categoryId], references: [id])
+  creator     User            @relation(fields: [createdBy], references: [id])
+
+  @@index([expenseDate])
+  @@index([categoryId])
+  @@map("expenses")
+}
+
+model Ingredient {
+  id                    String                 @id @default(uuid()) @db.Uuid
+  name                  String                 @unique
+  unit                  String
+  reorderLevel          Decimal?               @map("reorder_level") @db.Decimal(10, 2)
+  isActive              Boolean                @default(true) @map("is_active")
+  createdAt             DateTime               @default(now()) @map("created_at")
+  purchaseItems         PurchaseItem[]
+  recipes               ProductRecipe[]
+  inventoryTransactions InventoryTransaction[]
+
+  @@map("ingredients")
+}
+
+model Purchase {
+  id             String                 @id @default(uuid()) @db.Uuid
+  purchaseDate   DateTime               @db.Date @map("purchase_date")
+  supplierName   String                 @map("supplier_name")
+  totalAmount    Decimal                @map("total_amount") @db.Decimal(10, 2)
+  note           String?
+  createdBy      String                 @db.Uuid @map("created_by")
+  createdAt      DateTime               @default(now()) @map("created_at")
+  creator        User                   @relation(fields: [createdBy], references: [id])
+  items          PurchaseItem[]
+  inventoryMoves InventoryTransaction[]
+
+  @@index([purchaseDate])
+  @@map("purchases")
+}
+
+model PurchaseItem {
+  id           String      @id @default(uuid()) @db.Uuid
+  purchaseId   String      @db.Uuid @map("purchase_id")
+  ingredientId String      @db.Uuid @map("ingredient_id")
+  quantity     Decimal     @db.Decimal(10, 2)
+  unitCost     Decimal     @map("unit_cost") @db.Decimal(10, 2)
+  lineTotal    Decimal     @map("line_total") @db.Decimal(10, 2)
+  purchase     Purchase    @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  ingredient   Ingredient  @relation(fields: [ingredientId], references: [id])
+
+  @@index([purchaseId])
+  @@index([ingredientId])
+  @@map("purchase_items")
+}
+
+model InventoryTransaction {
+  id              String                   @id @default(uuid()) @db.Uuid
+  ingredientId    String                   @db.Uuid @map("ingredient_id")
+  transactionDate DateTime                 @db.Date @map("transaction_date")
+  transactionType InventoryTransactionType @map("transaction_type")
+  quantityIn      Decimal                  @default(0) @map("quantity_in") @db.Decimal(10, 2)
+  quantityOut     Decimal                  @default(0) @map("quantity_out") @db.Decimal(10, 2)
+  balanceAfter    Decimal?                 @map("balance_after") @db.Decimal(10, 2)
+  saleId          String?                  @db.Uuid @map("sale_id")
+  purchaseId      String?                  @db.Uuid @map("purchase_id")
+  adjustedBy      String?                  @db.Uuid @map("adjusted_by")
+  note            String?
+  ingredient      Ingredient               @relation(fields: [ingredientId], references: [id])
+  sale            Sale?                    @relation(fields: [saleId], references: [id])
+  purchase        Purchase?                @relation(fields: [purchaseId], references: [id])
+  adjustedByUser  User?                    @relation(fields: [adjustedBy], references: [id])
+
+  @@index([ingredientId, transactionDate])
+  @@index([saleId])
+  @@index([purchaseId])
+  @@map("inventory_transactions")
+}
+
+model ProductRecipe {
+  id              String      @id @default(uuid()) @db.Uuid
+  productId       String      @db.Uuid @map("product_id")
+  ingredientId    String      @db.Uuid @map("ingredient_id")
+  quantityPerUnit Decimal     @map("quantity_per_unit") @db.Decimal(10, 2)
+  product         Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  ingredient      Ingredient  @relation(fields: [ingredientId], references: [id])
+
+  @@unique([productId, ingredientId])
+  @@index([ingredientId])
+  @@map("product_recipes")
+}
