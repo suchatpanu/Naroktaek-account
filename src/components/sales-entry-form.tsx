@@ -3,15 +3,10 @@
 import { useActionState } from "react";
 import Link from "next/link";
 
-import { initialFormState, saveSaleEntry } from "@/app/actions";
+import { saveSaleEntry } from "@/app/actions";
+import { initialFormState } from "@/app/form-state";
+import type { ReferenceOption } from "@/lib/reference-data";
 import { SubmitButton } from "@/components/submit-button";
-
-const paymentMethods = [
-  { value: "cash", label: "เงินสด" },
-  { value: "bank_transfer", label: "เงินโอน" },
-  { value: "ocha", label: "Ocha" },
-  { value: "delivery", label: "Delivery" },
-];
 
 const channels = [
   { value: "STORE", label: "หน้าร้าน" },
@@ -20,7 +15,11 @@ const channels = [
   { value: "OTHER", label: "อื่น ๆ" },
 ];
 
-export function SalesEntryForm() {
+type SalesEntryFormProps = {
+  paymentMethods: ReferenceOption[];
+};
+
+export function SalesEntryForm({ paymentMethods }: SalesEntryFormProps) {
   const [state, formAction] = useActionState(saveSaleEntry, initialFormState);
 
   return (
@@ -101,7 +100,7 @@ export function SalesEntryForm() {
 
       <div className="flex flex-col gap-3 rounded-3xl border border-[var(--line)] bg-white/45 p-4 dark:bg-white/5">
         <p className="text-sm text-[var(--muted)]">
-          รอบนี้เป็น prototype สำหรับทดสอบ flow การบันทึกข้อมูลก่อนเชื่อมฐานข้อมูลจริง
+          ถ้าตั้งค่า Supabase แล้ว ฟอร์มนี้จะบันทึกลงตาราง <span className="font-mono text-[var(--foreground)]">sales</span> จริงทันที
         </p>
         {state.message ? (
           <p

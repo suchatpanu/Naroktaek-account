@@ -3,24 +3,16 @@
 import { useActionState } from "react";
 import Link from "next/link";
 
-import { initialFormState, saveExpenseEntry } from "@/app/actions";
+import { saveExpenseEntry } from "@/app/actions";
+import { initialFormState } from "@/app/form-state";
+import type { ReferenceOption } from "@/lib/reference-data";
 import { SubmitButton } from "@/components/submit-button";
 
-const expenseCategories = [
-  "ค่าหมู",
-  "ค่าเนื้อ",
-  "ร้านผัก",
-  "ร้านเส้น",
-  "ค่าน้ำแข็ง",
-  "ค่าแก๊ส",
-  "ค่าแรงรายวัน",
-  "ค่าเช่าร้าน",
-  "ค่าน้ำ",
-  "ค่าไฟ",
-  "อื่น ๆ",
-];
+type ExpenseEntryFormProps = {
+  expenseCategories: ReferenceOption[];
+};
 
-export function ExpenseEntryForm() {
+export function ExpenseEntryForm({ expenseCategories }: ExpenseEntryFormProps) {
   const [state, formAction] = useActionState(saveExpenseEntry, initialFormState);
 
   return (
@@ -37,8 +29,8 @@ export function ExpenseEntryForm() {
               เลือกหมวดรายจ่าย
             </option>
             {expenseCategories.map((item) => (
-              <option key={item} value={item}>
-                {item}
+              <option key={item.value} value={item.value}>
+                {item.label}
               </option>
             ))}
           </select>
@@ -85,7 +77,7 @@ export function ExpenseEntryForm() {
 
       <div className="flex flex-col gap-3 rounded-3xl border border-[var(--line)] bg-white/45 p-4 dark:bg-white/5">
         <p className="text-sm text-[var(--muted)]">
-          ฟอร์มนี้พร้อมสำหรับต่อเข้าตาราง <span className="font-mono text-[var(--foreground)]">expenses</span> ภายหลัง
+          ถ้าตั้งค่า Supabase แล้ว ฟอร์มนี้จะบันทึกลงตาราง <span className="font-mono text-[var(--foreground)]">expenses</span> จริงทันที
         </p>
         {state.message ? (
           <p

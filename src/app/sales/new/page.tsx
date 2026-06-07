@@ -1,6 +1,35 @@
 import { SalesEntryForm } from "@/components/sales-entry-form";
+import { getPrisma } from "@/lib/prisma";
+import { fallbackPaymentMethods } from "@/lib/reference-data";
 
-export default function NewSalePage() {
+async function getPaymentMethods() {
+  try {
+    const prisma = getPrisma();
+    const paymentMethods = await prisma.paymentMethod.findMany({
+      where: { },
+      orderBy: { name: "asc" },
+      select: {
+        code: true,
+        name: true,
+      },
+    });
+
+    if (paymentMethods.length > 0) {
+      return paymentMethods.map((item) => ({
+        value: item.code,
+        label: item.name,
+      }));
+    }
+  } catch {
+    // Fall back to local defaults until the database is configured.
+  }
+
+  return fallbackPaymentMethods;
+}
+
+export default async function NewSalePage() {
+  const paymentMethods = await getPaymentMethods();
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
       <section className="rounded-[2rem] border border-[var(--line)] bg-[var(--card)] p-6 shadow-[0_18px_40px_rgba(44,30,16,0.09)]">
@@ -19,7 +48,7 @@ export default function NewSalePage() {
       </section>
 
       <section className="rounded-[2rem] border border-[var(--line)] bg-[var(--card)] p-6">
-        <SalesEntryForm />
+        <SalesEntryForm paymentMethods={paymentMethods} />
       </section>
     </main>
   );

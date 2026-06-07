@@ -1,6 +1,37 @@
 import { ExpenseEntryForm } from "@/components/expense-entry-form";
+import { getPrisma } from "@/lib/prisma";
+import { fallbackExpenseCategories } from "@/lib/reference-data";
 
-export default function NewExpensePage() {
+async function getExpenseCategories() {
+  try {
+    const prisma = getPrisma();
+    const categories = await prisma.expenseCategory.findMany({
+      where: {
+        isActive: true,
+      },
+      orderBy: { name: "asc" },
+      select: {
+        code: true,
+        name: true,
+      },
+    });
+
+    if (categories.length > 0) {
+      return categories.map((item) => ({
+        value: item.code,
+        label: item.name,
+      }));
+    }
+  } catch {
+    // Fall back to local defaults until the database is configured.
+  }
+
+  return fallbackExpenseCategories;
+}
+
+export default async function NewExpensePage() {
+  const expenseCategories = await getExpenseCategories();
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-5 py-6 sm:px-8 lg:px-10">
       <section className="rounded-[2rem] border border-[var(--line)] bg-[var(--card)] p-6 shadow-[0_18px_40px_rgba(44,30,16,0.09)]">
@@ -19,7 +50,7 @@ export default function NewExpensePage() {
       </section>
 
       <section className="rounded-[2rem] border border-[var(--line)] bg-[var(--card)] p-6">
-        <ExpenseEntryForm />
+        <ExpenseEntryForm expenseCategories={expenseCategories} />
       </section>
     </main>
   );

@@ -37,7 +37,7 @@ enum InventoryTransactionType {
 }
 
 model User {
-  id               String                 @id @default(uuid()) @db.Uuid
+  id               String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name             String
   role             UserRole               @default(STAFF)
   email            String                 @unique
@@ -52,7 +52,7 @@ model User {
 }
 
 model PaymentMethod {
-  id        String   @id @default(uuid()) @db.Uuid
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code      String   @unique
   name      String
   createdAt DateTime @default(now()) @map("created_at")
@@ -62,7 +62,7 @@ model PaymentMethod {
 }
 
 model Product {
-  id        String          @id @default(uuid()) @db.Uuid
+  id        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   sku       String?         @unique
   name      String
   salePrice Decimal         @map("sale_price") @db.Decimal(10, 2)
@@ -75,7 +75,7 @@ model Product {
 }
 
 model Sale {
-  id              String                @id @default(uuid()) @db.Uuid
+  id              String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   saleNumber      String                @unique @map("sale_number")
   saleDate        DateTime              @db.Date @map("sale_date")
   paymentMethodId String                @db.Uuid @map("payment_method_id")
@@ -97,7 +97,7 @@ model Sale {
 }
 
 model SaleItem {
-  id        String   @id @default(uuid()) @db.Uuid
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   saleId    String   @db.Uuid @map("sale_id")
   productId String   @db.Uuid @map("product_id")
   quantity  Decimal  @db.Decimal(10, 2)
@@ -112,7 +112,7 @@ model SaleItem {
 }
 
 model ExpenseCategory {
-  id        String      @id @default(uuid()) @db.Uuid
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code      String      @unique
   name      String
   type      ExpenseType
@@ -124,7 +124,7 @@ model ExpenseCategory {
 }
 
 model Expense {
-  id          String          @id @default(uuid()) @db.Uuid
+  id          String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   expenseDate DateTime        @db.Date @map("expense_date")
   categoryId  String          @db.Uuid @map("category_id")
   amount      Decimal         @db.Decimal(10, 2)
@@ -142,7 +142,7 @@ model Expense {
 }
 
 model Ingredient {
-  id                    String                 @id @default(uuid()) @db.Uuid
+  id                    String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name                  String                 @unique
   unit                  String
   reorderLevel          Decimal?               @map("reorder_level") @db.Decimal(10, 2)
@@ -156,7 +156,7 @@ model Ingredient {
 }
 
 model Purchase {
-  id             String                 @id @default(uuid()) @db.Uuid
+  id             String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   purchaseDate   DateTime               @db.Date @map("purchase_date")
   supplierName   String                 @map("supplier_name")
   totalAmount    Decimal                @map("total_amount") @db.Decimal(10, 2)
@@ -172,7 +172,7 @@ model Purchase {
 }
 
 model PurchaseItem {
-  id           String      @id @default(uuid()) @db.Uuid
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   purchaseId   String      @db.Uuid @map("purchase_id")
   ingredientId String      @db.Uuid @map("ingredient_id")
   quantity     Decimal     @db.Decimal(10, 2)
@@ -187,7 +187,7 @@ model PurchaseItem {
 }
 
 model InventoryTransaction {
-  id              String                   @id @default(uuid()) @db.Uuid
+  id              String                   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   ingredientId    String                   @db.Uuid @map("ingredient_id")
   transactionDate DateTime                 @db.Date @map("transaction_date")
   transactionType InventoryTransactionType @map("transaction_type")
@@ -210,7 +210,7 @@ model InventoryTransaction {
 }
 
 model ProductRecipe {
-  id              String      @id @default(uuid()) @db.Uuid
+  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   productId       String      @db.Uuid @map("product_id")
   ingredientId    String      @db.Uuid @map("ingredient_id")
   quantityPerUnit Decimal     @map("quantity_per_unit") @db.Decimal(10, 2)
